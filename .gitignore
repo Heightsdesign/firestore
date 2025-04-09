@@ -1,0 +1,9 @@
+.venv/
+.env
+__pycache__
+.idea/
+tl_2020_us_zcta520.shp
+tl_2020_us_zcta520.cpg
+tl_2020_us_zcta520.dbf
+tl_2020_us_zcta520.prj
+tl_2020_us_zcta520.shx
