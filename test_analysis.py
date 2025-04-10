@@ -48,6 +48,7 @@ else:
         print(f"   - Competitor Count: {zone['competitor_count']} => {zone.get('competitor_count_label')}")
         print(f"   - Traffic Score: {zone['traffic_score']} => {zone.get('traffic_score_label')}")
         print(f"   - Parking Score: {zone['parking_score']} => {zone.get('parking_score_label')}")
+        print(f"   - URL: {zone['loopnet_url']}")
 
         # GPT commentary
         insight = fetch_lifestyle_fit(zone, business_type)

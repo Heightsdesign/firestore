@@ -218,6 +218,38 @@ def fetch_lifestyle_fit(zone: Dict, business_type: str) -> Optional[str]:
 #################################################
 # 6. The main rank_top_zones function
 #################################################
+
+def construct_loopnet_url(zip_code: str, lat: float, lng: float) -> Optional[str]:
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        "latlng": f"{lat},{lng}",
+        "key": GOOGLE_API_KEY
+    }
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        results = response.json().get("results", [])
+
+        city = state = None
+        for result in results:
+            for comp in result.get("address_components", []):
+                if "locality" in comp["types"] and not city:
+                    city = comp["short_name"]
+                if "administrative_area_level_1" in comp["types"] and not state:
+                    state = comp["short_name"]
+            if city and state:
+                break
+
+        if city and state:
+            slug = f"{city.lower().replace(' ', '-')}-{state.lower()}-{zip_code}"
+            return f"https://www.loopnet.com/search/commercial-real-estate/{slug}/for-lease/"
+        else:
+            print(f"[WARN] Could not resolve city/state for ZIP {zip_code}")
+            return None
+    except Exception as e:
+        print(f"[ERROR] Failed to construct LoopNet URL for ZIP {zip_code}: {e}")
+        return None
+
 def rank_top_zones(center_lat: float, center_lng: float, radius_km: float, weights: Dict[str, float], place_type: str = "restaurant", top_n: int = 5) -> List[Dict]:
     # 1) Identify candidate ZIPs
     zip_candidates = get_zip_codes_within_radius(center_lat, center_lng, radius_km)
@@ -235,5 +267,9 @@ def rank_top_zones(center_lat: float, center_lng: float, radius_km: float, weigh
     # 4) Label each metric with Low/Med/High
     label_zone_metrics(scored_zones)
 
-    # 5) Return top N scored zones
+    # 5) Add LoopNet commercial listing URLs
+    for z in scored_zones:
+        z["loopnet_url"] = construct_loopnet_url(z["zip"], z["lat"], z["lng"])
+
+    # 6) Return top N scored zones
     return scored_zones[:top_n]
