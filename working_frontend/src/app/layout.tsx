@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Business Zone Finder',
+  title: 'Firestore',
   description: 'Find the best zones for your business',
 };
 
