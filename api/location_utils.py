@@ -10,21 +10,24 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 
-from fetcher import (
+from .fetcher import (
     fetch_competitor_count,
     fetch_population,
     fetch_median_income,
     fetch_traffic_score,
     fetch_parking_score
 )
-from rent_agent import get_rent_score_from_coordinates
+from .rent_agent import get_rent_score_from_coordinates
 
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-shapefile_path = r"C:\Users\plher\Documents\Firestore\tl_2020_us_zcta520.shp"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+shapefile_path = os.path.join(BASE_DIR, "data", "tl_2020_us_zcta520.shp")
+
+
 zip_gdf = gpd.read_file(shapefile_path)
 if zip_gdf.crs != "EPSG:4326":
     zip_gdf = zip_gdf.to_crs(epsg=4326)

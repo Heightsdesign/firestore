@@ -2,7 +2,7 @@ import os
 from langchain_openai import ChatOpenAI
 from functools import lru_cache
 from dotenv import load_dotenv
-from geo_utils import reverse_geocode
+from .geo_utils import reverse_geocode
 
 load_dotenv()
 
