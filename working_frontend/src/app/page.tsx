@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Map from '@/components/Map';
-import AnalyzeButton from '@/components/AnalyzeButton';
 import SearchControls from '@/components/SearchControls';
+import Loader from '@/components/Loader';
+import Image from 'next/image';
+import ZipResultCard from '@/components/ZipResultCard';
+
 
 export default function Home() {
   const [lat, setLat] = useState<number | null>(null);
@@ -35,7 +38,7 @@ export default function Home() {
         body: JSON.stringify({
           lat,
           lng,
-          radius: radiusMiles,
+          radius: radiusMiles * 1.60934,
           weights,
           business_type: 'barbershop', // temp hardcoded
         }),
@@ -45,7 +48,7 @@ export default function Home() {
 
       const data = await res.json();
       console.log('✅ Received results:', data);
-      setResults(data);
+      setResults(data.results);
     } catch (err) {
       console.error('❌ Error running analysis:', err);
       alert('Failed to analyze. Check console for details.');
@@ -56,7 +59,16 @@ export default function Home() {
 
   return (
     <main className="p-10 space-y-6">
-      <h1 className="text-3xl font-bold text-center">📍 Firestore</h1>
+      <div className="flex flex-col items-center space-y-2">
+        <Image
+          src="/images/firestore-full-logo-medium.png"
+          alt="Firestore Logo"
+          width={160} // You can adjust this
+          height={40}
+          priority
+        />
+        <h1 className="text-2xl font-semibold">Business Zone Finder</h1>
+      </div>
 
       <section className="w-full flex flex-col items-center justify-center mt-6 px-4">
         <h2 className="text-xl font-semibold mb-4">🗺️ Choose a Location</h2>
@@ -87,26 +99,24 @@ export default function Home() {
         onRadiusChange={(miles) => setRadius(miles)}
       />
 
-      {loading && <p className="text-center text-blue-600 font-medium">Analyzing...</p>}
+      {loading && (
+        <>
+          <p className="text-center text-blue-600 font-medium">Analyzing...</p>
+          <Loader />
+        </>
+      )}
 
       {results.length > 0 && (
-        <section className="mt-8 space-y-4">
-          <h2 className="text-xl font-semibold">Top Zones:</h2>
+        <section className="mt-8 space-y-4 w-full max-w-3xl mx-auto">
+          <h2 className="text-xl font-semibold text-center mb-4">Top Zones:</h2>
+          console.log("🧪 Rendering", results.length, "zones");
           {results.map((zone, index) => (
-            <div key={index} className="p-4 border rounded shadow">
-              <p><strong>#{index + 1} ZIP:</strong> {zone.zip}</p>
-              <p><strong>Score:</strong> {zone.score}</p>
-              <p><strong>Population:</strong> {zone.population}</p>
-              <p><strong>Income:</strong> ${zone.median_income}</p>
-              <p><strong>Rent:</strong> {zone.rent_cost} ({zone.rent_cost_label})</p>
-              <p><strong>Competitors:</strong> {zone.competitor_count}</p>
-              <p><strong>Traffic:</strong> {zone.traffic_score}</p>
-              <p><strong>Parking:</strong> {zone.parking_score}</p>
-              <p><strong>Insight:</strong> {zone.insight}</p>
-            </div>
+            <ZipResultCard key={index} index={index} zone={zone} />
           ))}
         </section>
       )}
+
+
     </main>
   );
 }
