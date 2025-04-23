@@ -15,12 +15,27 @@ interface ZipResultCardProps {
     gpt_insight: string;
     loopnet_url: string;
   };
+  isActive?: boolean;
+  onSelect?: () => void;
 }
 
-export default function ZipResultCard({ index, zone }: ZipResultCardProps) {
+export default function ZipResultCard({
+  zone,
+  index,
+  isActive = false,
+  onSelect,
+}: ZipResultCardProps) {
   return (
-    <div className="p-4 border rounded shadow bg-white space-y-1">
-      <h3 className="text-lg font-semibold">#{index + 1} - ZIP {zone.zip}</h3>
+    <div
+      onClick={onSelect}
+      className={`p-4 border rounded shadow bg-white shrink-0 w-full sm:w-96
+        ${isActive ? 'border-blue-500 ring-2 ring-blue-400' : 'hover:bg-blue-50'}
+        cursor-pointer`}
+    >
+      <h3 className="text-lg font-semibold">
+        #{index + 1} – ZIP {zone.zip}
+      </h3>
+      <p className="text-sm text-gray-600 mb-1">Score: {zone.score.toFixed(3)}</p>
       <p><strong>Score:</strong> {zone.score}</p>
       <p><strong>Population:</strong> {zone.population}</p>
       <p><strong>Income:</strong> ${zone.median_income}</p>

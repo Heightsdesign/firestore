@@ -12,3 +12,11 @@ html, body {
 body {
   font-family: system-ui, sans-serif;
 }
+
+input[type="range"]::-webkit-slider-thumb { background: #16a34a; }
+input[type="range"]::-moz-range-thumb    { background: #16a34a; }
+
+@keyframes slide-fade {
+  from { transform: translateX(1.5rem); opacity:0; }
+  to   { transform: translateX(0);       opacity:1; }
+}

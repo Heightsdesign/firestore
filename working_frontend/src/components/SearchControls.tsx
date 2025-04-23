@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 interface Props {
+  initialRadius: number;
   onRun: (config: {
     radiusMiles: number;
     weights: Record<string, number>;
@@ -31,6 +32,7 @@ export default function SearchControls({ onRun, onRadiusChange }: Props) {
         <label className="block font-medium mb-1">📏 Radius: {radius} miles</label>
         <input
           type="range"
+          
           min={2}
           max={20}
           step={1}
@@ -40,7 +42,7 @@ export default function SearchControls({ onRun, onRadiusChange }: Props) {
             setRadius(miles);
             onRadiusChange(miles); // 👈 update parent
           }}
-          className="w-full"
+          className="w-full accent-green-600"
         />
       </div>
 
@@ -64,7 +66,7 @@ export default function SearchControls({ onRun, onRadiusChange }: Props) {
       <div className="text-center pt-4">
         <button
           onClick={() => onRun({ radiusMiles: radius, weights })}
-          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+          className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
         >
           Analyze Location
         </button>

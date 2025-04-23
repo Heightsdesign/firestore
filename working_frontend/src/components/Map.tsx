@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import mapboxgl, { GeoJSONSource } from 'mapbox-gl';
+import { FeatureCollection, Point, GeoJsonProperties } from 'geojson';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -10,12 +11,15 @@ interface MapProps {
   lat: number | null;
   lng: number | null;
   radiusKm: number;
+  highlightedZip?: string | null;
+  results?: any[]; 
 }
 
-export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
+export default function Map({ onSelect, lat, lng, radiusKm, highlightedZip, results = [], }: MapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const circleSourceRef = useRef<GeoJSONSource | null>(null); // pointer to the circle source
+  
 
   // Initialize the map once
   useEffect(() => {
@@ -34,6 +38,11 @@ export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
       console.log('✅ Map loaded');
       map.resize();
 
+      map.addSource('zip-centers', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
       // Create an empty source
       map.addSource('circle-source', {
         type: 'geojson',
@@ -47,6 +56,18 @@ export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
         },
       });
 
+      map.addLayer({
+        id: 'zip-points',
+        type: 'circle',
+        source: 'zip-centers',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#3b82f6',      // default blue
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+
       circleSourceRef.current = map.getSource('circle-source') as GeoJSONSource;
 
       map.addLayer({
@@ -54,7 +75,7 @@ export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
         type: 'fill',
         source: 'circle-source',
         paint: {
-          'fill-color': '#3b82f6',
+          'fill-color': '#22c55e',
           'fill-opacity': 0.25,
         },
       });
@@ -67,6 +88,8 @@ export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
       console.log('🖱️ Map clicked at:', lat, lng);
       onSelect(lat, lng);
     });
+
+    
 
     return () => {
       map.remove();
@@ -102,6 +125,49 @@ export default function Map({ onSelect, lat, lng, radiusKm }: MapProps) {
     circleSourceRef.current.setData(circle);
   }, [lat, lng, radiusKm]);
 
+  useEffect(() => {
+    if (!mapRef.current) return;
+  
+    const src = mapRef.current.getSource('zip-centers') as GeoJSONSource | undefined;
+    if (!src) return;
+  
+    /* nothing selected → clear the source */
+    if (!highlightedZip) {
+      src.setData({ type: 'FeatureCollection', features: [] } as any);
+      return;
+    }
+  
+    const zone = results.find((z: any) => String(z.zip) === String(highlightedZip));
+    if (!zone) return;
+  
+    const fc: FeatureCollection<Point, GeoJsonProperties> = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [zone.lng, zone.lat] },
+          properties: { zip: String(zone.zip) },
+        },
+      ],
+    };
+    src.setData(fc as any);
+  }, [results, highlightedZip]);
+  
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (!mapRef.current.isStyleLoaded()) return;
+  if (!mapRef.current.getLayer('zip-points')) return;
+  
+    mapRef.current.setPaintProperty('zip-points', 'circle-color', [
+      'match',
+      ['get', 'zip'],
+      highlightedZip ?? '',   // match key
+      '#f59e0b',              // highlight amber
+      '#3b82f6',              // default blue
+    ]);
+  }, [highlightedZip]);
+  
   // Circle geo generator with logs
   function createCircleGeoJSON(
     [lng, lat]: [number, number],
