@@ -1,9 +1,16 @@
 'use client';
 
+import { Player } from '@lottiefiles/react-lottie-player';
+
 export default function Loader() {
   return (
-    <div className="flex justify-center py-6">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500 border-solid"></div>
+    <div className="flex justify-center items-center w-full h-full">
+      <Player
+        autoplay
+        loop
+        src="/loading.json"
+        style={{ height: '150px', width: '150px' }}
+      />
     </div>
   );
 }

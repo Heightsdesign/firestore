@@ -30,6 +30,7 @@ export default function Map({ onSelect, lat, lng, radiusKm, highlightedZip, resu
       style: 'mapbox://styles/mapbox/streets-v11',
       center: [-118.2437, 34.0522],
       zoom: 10,
+      attributionControl: false, 
     });
 
     mapRef.current = map;
