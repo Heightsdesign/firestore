@@ -15,7 +15,7 @@ export default function Home() {
   /* ──────────────────────────── state */
   const [lat, setLat]             = useState<number | null>(null);
   const [lng, setLng]             = useState<number | null>(null);
-  const [radiusMiles, setRadius]  = useState(5);          // miles
+  const [radiusMiles, setRadius]  = useState(5);
 
   const [results, setResults]     = useState<any[]>([]);
   const [loading, setLoading]     = useState(false);
@@ -45,7 +45,7 @@ export default function Home() {
         body   : JSON.stringify({
           lat,
           lng,
-          radius: radiusMiles * 1.60934, // backend expects km
+          radius: radiusMiles * 1.60934,
           weights,
           business_type: 'barbershop',
         }),
@@ -78,19 +78,18 @@ export default function Home() {
       </header>
 
       {/* ─── Main (centred) ─── */}
-      <main className="w-full flex justify-center">
+      <main className="flex-1 flex justify-center">            {/* ① flex wrapper */}
         <div
           className="
             grid gap-6
-            w-full max-w-7xl mx-auto
-            lg:grid-cols-[300px_1fr_380px]   /* settings | map | results */
+            px-4 sm:px-6
+            lg:grid-cols-[300px_minmax(500px,1fr)_480px]      /* settings | map | results */
           "
         >
-          {/* 1️⃣ Settings panel */}
+          {/* 1️⃣ Settings column – unchanged */}
           <aside
             className="
-              order-1
-              lg:order-none
+              order-1 lg:order-none
               lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)]
               overflow-y-auto
             "
@@ -102,7 +101,7 @@ export default function Home() {
             />
           </aside>
 
-          {/* 2️⃣ Map */}
+          {/* 2️⃣ Map column – unchanged */}
           <section className="order-2 lg:order-none space-y-4">
             <div className="w-full aspect-[4/3] rounded-md border shadow">
               <Map
@@ -110,31 +109,24 @@ export default function Home() {
                 lng={lng}
                 radiusKm={radiusMiles * 1.60934}
                 results={results}
-                highlightedZip={
-                  selectedZip ? String(selectedZip) : null
-                }
-                onSelect={(la, lo) => {
-                  setLat(la);
-                  setLng(lo);
-                }}
+                highlightedZip={selectedZip ?? null}
+                onSelect={(la, lo) => { setLat(la); setLng(lo); }}
               />
             </div>
-
-            {lat != null && lng != null && (
+            {lat !== null && lng !== null && (
               <p className="text-sm text-gray-600 text-center">
-                Selected:&nbsp;
-                <strong>{lat.toFixed(4)},&nbsp;{lng.toFixed(4)}</strong>
+                Selected: <strong>{lat.toFixed(4)}, {lng.toFixed(4)}</strong>
               </p>
             )}
           </section>
 
-          {/* 3️⃣ Results (one card at a time) */}
+          {/* 3️⃣ Results column (card carousel) – unchanged */}
           <aside
             className="
               order-3 lg:order-none
               space-y-4
               lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)]
-              overflow-hidden
+              overflow-y-auto             /* ⬅️  was overflow-hidden */
             "
           >
             {results.length === 0 ? (
@@ -143,10 +135,10 @@ export default function Home() {
               </p>
             ) : (
               <>
-                <h2 className="text-lg font-semibold text-center">Top Zones</h2>
+                <h2 className="text-lg font-semibold text-center">Top&nbsp;Zones</h2>
 
-                <div className="flex items-center gap-2 justify-center">
-                  {/* ← button */}
+                <div className="flex items-center gap-2">
+                  {/* ← arrow */}
                   <button
                     onClick={() => setIdx((i) => Math.max(0, i - 1))}
                     disabled={selectedIndex === 0}
@@ -155,8 +147,8 @@ export default function Home() {
                     ←
                   </button>
 
-                  {/* animated card */}
-                  <div className="relative w-[90vw] sm:w-80 overflow-hidden mx-2">
+                  {/* card wrapper – now flex-1 / min-w-0 so it uses all remaining width */}
+                  <div className="flex-1 min-w-0">
                     <div
                       key={results[selectedIndex].zip}
                       className="
@@ -174,7 +166,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* → button */}
+                  {/* → arrow */}
                   <button
                     onClick={() =>
                       setIdx((i) => Math.min(results.length - 1, i + 1))
@@ -188,6 +180,7 @@ export default function Home() {
               </>
             )}
           </aside>
+
         </div>
       </main>
 
