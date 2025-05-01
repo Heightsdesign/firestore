@@ -20,3 +20,64 @@ input[type="range"]::-moz-range-thumb    { background: #16a34a; }
   from { transform: translateX(1.5rem); opacity:0; }
   to   { transform: translateX(0);       opacity:1; }
 }
+
+/* Firestore-green sliders (track + thumb) */
+input[type="range"].slider-green {
+  -webkit-appearance: none; /* Safari/Chrome */
+  width: 100%;
+  background: transparent;   /* we’ll paint the track ourselves */
+}
+
+input[type="range"].slider-green:focus {
+  outline: none;
+}
+
+/* ---------- WebKit ---------- */
+input[type="range"].slider-green::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #d1fae5;            /* light green track */
+  border-radius: 3px;
+}
+input[type="range"].slider-green::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #16a34a;            /* green-600 thumb */
+  border: 3px solid #ffffff;
+  margin-top: -6px;               /* centres thumb on track */
+}
+
+/* ---------- Firefox ---------- */
+input[type="range"].slider-green::-moz-range-track {
+  height: 6px;
+  background: #d1fae5;
+  border-radius: 3px;
+}
+input[type="range"].slider-green::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 3px solid #ffffff;
+}
+
+/* ---------- Edge Legacy / IE ---------- */
+input[type="range"].slider-green::-ms-track {
+  height: 6px;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type="range"].slider-green::-ms-fill-lower,
+input[type="range"].slider-green::-ms-fill-upper {
+  background: #d1fae5;
+  border-radius: 3px;
+}
+input[type="range"].slider-green::-ms-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 3px solid #ffffff;
+}

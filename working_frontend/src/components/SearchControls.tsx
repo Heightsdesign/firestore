@@ -1,54 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+type Weights = {
+  rent: number;
+  competition: number;
+  population: number;
+  income: number;
+  traffic: number;
+  parking: number;
+};
 
 interface Props {
-  initialRadius: number;
-  onRun: (config: {
-    radiusMiles: number;
-    weights: Record<string, number>;
-  }) => void;
-  onRadiusChange: (miles: number) => void; // 👈 new prop
+  radius: number;
+  weights: Record<string, number>;
+  onRadiusChange: (miles: number) => void;
+  onWeightsChange: (w: Weights) => void;
 }
 
-export default function SearchControls({ onRun, onRadiusChange }: Props) {
-  const [radius, setRadius] = useState(5);
-  const [weights, setWeights] = useState({
-    rent: 0.2,
-    competition: 0.2,
-    population: 0.3,
-    income: 0.1,
-    traffic: 0.0,
-    parking: 0.1,
-  });
-
+export default function SearchControls({
+  radius,
+  weights,
+  onRadiusChange,
+  onWeightsChange,
+}: Props) {
   const updateWeight = (key: string, value: number) => {
-    setWeights((prev) => ({ ...prev, [key]: value }));
+    onWeightsChange({ ...weights, [key]: value } as Weights);
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6 mt-6">
+    <div className="space-y-6">
+      {/* Radius */}
       <div>
-        <label className="block font-medium mb-1">📏 Radius: {radius} miles</label>
+        <label className="block font-medium text-gray-600 mb-1">
+          📏 Radius: {radius} miles
+        </label>
         <input
           type="range"
-          
           min={2}
           max={20}
           step={1}
           value={radius}
-          onChange={(e) => {
-            const miles = parseInt(e.target.value);
-            setRadius(miles);
-            onRadiusChange(miles); // 👈 update parent
-          }}
-          className="w-full accent-green-600"
+          onChange={(e) => onRadiusChange(parseInt(e.target.value, 10))}
+          className="w-full slider-green"
         />
       </div>
 
+      {/* Weights */}
       {Object.entries(weights).map(([key, value]) => (
         <div key={key}>
-          <label className="block font-medium mb-1 capitalize">
+          <label className="block font-medium text-gray-600 mb-1 capitalize">
             {key}: {value}
           </label>
           <input
@@ -58,19 +57,10 @@ export default function SearchControls({ onRun, onRadiusChange }: Props) {
             step={0.05}
             value={value}
             onChange={(e) => updateWeight(key, parseFloat(e.target.value))}
-            className="w-full"
+            className="w-full slider-green"
           />
         </div>
       ))}
-
-      <div className="text-center pt-4">
-        <button
-          onClick={() => onRun({ radiusMiles: radius, weights })}
-          className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-        >
-          Analyze Location
-        </button>
-      </div>
     </div>
   );
 }
