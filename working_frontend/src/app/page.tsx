@@ -9,41 +9,37 @@ import { buildReportPdf } from '@/utils/pdf';
 import Map             from '@/components/Map';
 import SearchControls  from '@/components/SearchControls';
 import ZipResultCard   from '@/components/ZipResultCard';
+import { PRESETS, Weights } from '@/constants/presets';
 
 const Loader = dynamic(() => import('@/components/Loader'), { ssr: false });
 
-type Weights = {
-  rent: number;
-  competition: number;
-  population: number;
-  income: number;
-  traffic: number;
-  parking: number;
-};
 
 export default function Home() {
   /* ───────────────────────── shared state ───────────────────────── */
   const [lat,  setLat]  = useState<number | null>(null);
   const [lng,  setLng]  = useState<number | null>(null);
 
-  const [radiusMiles, setRadius] = useState(5);
-  const [weights, setWeights] = useState<Weights>({
-    rent: 0.2,
-    competition: 0.2,
-    population: 0.3,
-    income: 0.1,
-    traffic: 0.0,
-    parking: 0.1,
-  });
+  const [business, setBusiness] =
+  useState<keyof typeof PRESETS>('barbershop');
+
+  const [radiusMiles, setRadius] = useState(PRESETS[business].radius);
+  const [weights, setWeights]    = useState<Weights>(PRESETS[business].weights);
 
   const [results,       setResults]       = useState<any[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emailModalOpen, setEmailModal] = useState(false);
-const [emailAddr,      setEmailAddr]  = useState('');
-
+  const [emailAddr,      setEmailAddr]  = useState('');
 
   const selectedZip = results[selectedIndex]?.zip ?? null;
+
+
+  function handleBusinessChange(key: string) {
+    if (!(key in PRESETS)) return;
+    setBusiness(key as keyof typeof PRESETS);
+    setRadius(PRESETS[key].radius);
+    setWeights(PRESETS[key].weights);
+  }
 
   /* ───────────────────────── analysis handler ───────────────────── */
   async function runAnalysis({
@@ -70,7 +66,7 @@ const [emailAddr,      setEmailAddr]  = useState('');
           lng,
           radius: radiusMiles * 1.60934,      // backend expects km
           weights,
-          business_type: 'barbershop',
+          business_type: business,
         }),
       });
 
@@ -133,8 +129,10 @@ const [emailAddr,      setEmailAddr]  = useState('');
             </h3>
 
             <SearchControls
+              business={business}
               radius={radiusMiles}
               weights={weights}
+              onBusinessChange={handleBusinessChange}
               onRadiusChange={setRadius}
               onWeightsChange={setWeights}
             />
