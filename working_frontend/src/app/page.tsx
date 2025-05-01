@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import dynamic     from 'next/dynamic';
 import Image       from 'next/image';
+import { buildReportPdf } from '@/utils/pdf';
 
 import Map             from '@/components/Map';
 import SearchControls  from '@/components/SearchControls';
@@ -38,6 +39,9 @@ export default function Home() {
   const [results,       setResults]       = useState<any[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [emailModalOpen, setEmailModal] = useState(false);
+const [emailAddr,      setEmailAddr]  = useState('');
+
 
   const selectedZip = results[selectedIndex]?.zip ?? null;
 
@@ -242,61 +246,138 @@ export default function Home() {
 
             {/* Card carousel AFTER analysis */}
             {results.length > 0 && (
-              <div className="flex items-center gap-2">
-                {/* ← arrow */}
-                <button
-                  onClick={() =>
-                    setSelectedIndex((i) => Math.max(0, i - 1))
-                  }
-                  disabled={selectedIndex === 0}
-                  className="
-                    px-2 py-1 rounded
-                    bg-gray-200 hover:bg-gray-300
-                    disabled:opacity-40
-                  "
-                >
-                  ←
-                </button>
-
-                {/* active card */}
-                <div className="flex-1 min-w-0">
-                  <div
-                    key={results[selectedIndex].zip}
+              <>
+                <div className="flex items-center gap-2">
+                  {/* ← arrow */}
+                  <button
+                    onClick={() =>
+                      setSelectedIndex((i) => Math.max(0, i - 1))
+                    }
+                    disabled={selectedIndex === 0}
                     className="
-                      transition duration-300 ease-out
-                      translate-x-6 opacity-0
-                      animate-[slide-fade_0.3s_ease-out_forwards]
+                      px-2 py-1 rounded
+                      bg-gray-200 hover:bg-gray-300
+                      disabled:opacity-40
                     "
                   >
-                    <ZipResultCard
-                      index={selectedIndex}
-                      zone={results[selectedIndex]}
-                      isActive
-                      onSelect={() => null}
-                    />
+                    ←
+                  </button>
+
+                  {/* active card */}
+                  <div className="flex-1 min-w-0">
+                    <div
+                      key={results[selectedIndex].zip}
+                      className="
+                        transition duration-300 ease-out
+                        translate-x-6 opacity-0
+                        animate-[slide-fade_0.3s_ease-out_forwards]
+                      "
+                    >
+                      <ZipResultCard
+                        index={selectedIndex}
+                        zone={results[selectedIndex]}
+                        isActive
+                        onSelect={() => null}
+                      />
+                    </div>
                   </div>
+
+                  {/* → arrow */}
+                  <button
+                    onClick={() =>
+                      setSelectedIndex((i) =>
+                        Math.min(results.length - 1, i + 1),
+                      )
+                    }
+                    disabled={selectedIndex === results.length - 1}
+                    className="
+                      px-2 py-1 rounded
+                      bg-gray-200 hover:bg-gray-300
+                      disabled:opacity-40
+                    "
+                  >
+                    →
+                  </button>
                 </div>
 
-                {/* → arrow */}
-                <button
-                  onClick={() =>
-                    setSelectedIndex((i) =>
-                      Math.min(results.length - 1, i + 1),
-                    )
-                  }
-                  disabled={selectedIndex === results.length - 1}
-                  className="
-                    px-2 py-1 rounded
-                    bg-gray-200 hover:bg-gray-300
-                    disabled:opacity-40
-                  "
-                >
-                  →
-                </button>
-              </div>
+                {/* ─── PDF actions ─── */}
+                <div className="flex gap-3 pt-4">
+                  {/* Download */}
+                  <button
+                    className="flex-1 px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm"
+                    onClick={async () => {
+                      const blob = await buildReportPdf(results, { radiusMiles, weights });
+                      const url  = URL.createObjectURL(blob);
+                      const a    = document.createElement('a');
+                      a.href = url;
+                      a.download = 'firestore-report.pdf';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download&nbsp;PDF
+                  </button>
+
+                  {/* Email */}
+                  <button
+                    className="flex-1 px-3 py-2 rounded bg-green-600 hover:bg-green-700 text-white text-sm"
+                    onClick={() => setEmailModal(true)}
+                  >
+                    Email&nbsp;PDF
+                  </button>
+                </div>
+              </>
             )}
           </aside>
         </div>
+        {emailModalOpen && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+            <div className="bg-white rounded shadow p-6 w-80 space-y-4">
+              <h4 className="font-semibold text-lg">Send report by email</h4>
+
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={emailAddr}
+                onChange={(e) => setEmailAddr(e.target.value)}
+                className="w-full border rounded px-2 py-1"
+              />
+
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-3 py-1 text-sm"
+                  onClick={() => setEmailModal(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-40"
+                  disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddr)}
+                  onClick={async () => {
+                    const blob = await buildReportPdf(results, { radiusMiles, weights });
+                    const buf  = await blob.arrayBuffer();
+                    const binary = Array.from(new Uint8Array(buf))
+                      .map((b) => String.fromCharCode(b))
+                      .join('');
+                    const base64 = btoa(binary);
+
+                    await fetch('/api/email-report', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: emailAddr, pdfBase64: base64 }),
+                    });
+
+                    setEmailModal(false);
+                    alert('Email sent!');
+                  }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ─── Footer ─── */}

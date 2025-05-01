@@ -6,6 +6,7 @@
         "src/*"
       ]
     },
+    "types": ["node"],
     "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "node",
