@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@sendgrid/mail": "^8.1.5",
     "framer-motion": "^12.9.2",
     "lottie-react": "^2.4.1",
     "mapbox-gl": "^3.11.0",

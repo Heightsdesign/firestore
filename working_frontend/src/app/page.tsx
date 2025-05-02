@@ -388,6 +388,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-white/70 backdrop-blur flex flex-col items-center justify-center z-40">
           <Loader />
           <p className="mt-2 text-green-700 font-medium">Crunching numbers…</p>
+          <p className="mt-2 text-grey-700 font-small">This may take a few minutes</p>
         </div>
       )}
     </div>

@@ -1,30 +1,37 @@
 // app/api/email-report/route.ts
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import * as sg from '@sendgrid/mail';
 
-// configure env vars: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST!,
-  port: Number(process.env.SMTP_PORT!),
-  auth: { user: process.env.SMTP_USER!, pass: process.env.SMTP_PASS! },
-});
+sg.setApiKey(process.env.SENDGRID_API_KEY!);
 
-export async function POST(request: Request) {
-  const { email, pdfBase64 } = await request.json();
-
+export async function POST(req: Request) {
   try {
-    await transporter.sendMail({
-      from: '"Firestore Reports" <no-reply@firestore.ai>',
+    const { email, pdfBase64 } = await req.json();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+
+    await sg.send({
       to: email,
-      subject: 'Your location analysis report',
-      text: 'Attached is the PDF report you requested.',
+      from: {
+        email: process.env.FROM_EMAIL!,
+        name : process.env.FROM_NAME  || 'Firestore Reports',
+      },
+      subject: 'Your Firestore location report',
+      text   : 'Thanks for using Firestore. Your PDF report is attached.',
       attachments: [
-        { filename: 'report.pdf', content: pdfBase64, encoding: 'base64' },
+        {
+          content     : pdfBase64,
+          filename    : 'firestore-report.pdf',
+          type        : 'application/pdf',
+          disposition : 'attachment',
+        },
       ],
     });
+
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    console.error('SendGrid error:', err);
+    return NextResponse.json({ error: 'Mail failed' }, { status: 500 });
   }
 }
