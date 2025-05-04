@@ -379,9 +379,10 @@ export default function Home() {
           </div>
         )}
       </main>
-      
+
       {/* ─── Review Section ─── */}
-      <div className="px-4 sm:px-6 mt-16">
+      <hr className="my-16 border-gray-200" />
+      <div className="px-4 sm:px-6 mt-16 bg-gray-50">
         <ReviewSection />
       </div>
 

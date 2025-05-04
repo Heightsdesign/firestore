@@ -7,6 +7,8 @@ from .location_utils import rank_top_zones, fetch_lifestyle_fit
 from .models import Review
 from .serializers import ReviewSerializer
 
+from sqlite3 import connect, Row
+
 
 @csrf_exempt
 def analyze_location(request):
@@ -22,6 +24,13 @@ def analyze_location(request):
 
             if not center_lat or not center_lng:
                 return JsonResponse({'success': False, 'error': 'Missing coordinates'}, status=400)
+            
+
+            db = connect("api/places_cache.sqlite")
+            db.row_factory = Row
+            print("zip_analysis_cache columns →",
+                [r["name"] for r in db.execute("PRAGMA table_info(zip_analysis_cache);")])
+            db.close()
 
             # Run the actual analysis
             top_zips = rank_top_zones(

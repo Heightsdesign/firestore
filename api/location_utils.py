@@ -15,9 +15,11 @@ from .fetcher import (
     fetch_population,
     fetch_median_income,
     fetch_traffic_score,
-    fetch_parking_score
+    fetch_parking_score,
+    cached_get
 )
 from .rent_agent import get_rent_score_from_coordinates
+from .zip_cache import load_zip, save_zip
 
 
 load_dotenv()
@@ -51,9 +53,7 @@ def reverse_geocode_to_neighborhood(lat: float, lng: float) -> str | None:
     }
 
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
+        data = cached_get(url, params)
 
         for result in data.get("results", []):
             for component in result.get("address_components", []):
@@ -72,28 +72,46 @@ def reverse_geocode_to_neighborhood(lat: float, lng: float) -> str | None:
 #################################################
 # 2. HELPER: Evaluate single ZIP
 #################################################
-def evaluate_zip(zip_record, place_type: str = "restaurant", radius_m: int = 1000) -> Dict:
+def evaluate_zip(zip_record, place_type: str = "restaurant", radius_m: int = 1000):
     try:
-        centroid = zip_record.geometry.centroid
-        lat, lng = centroid.y, centroid.x
-        zip_code = zip_record["ZCTA5CE20"]
+        centroid  = zip_record.geometry.centroid
+        lat, lng  = centroid.y, centroid.x
+        zip_code  = zip_record["ZCTA5CE20"]
 
-        rent_score = get_rent_score_from_coordinates(lat, lng)
-        print(f"[DEBUG] Rent score at ZIP {zip_code} ({lat:.4f}, {lng:.4f}) → {rent_score}")
+        cached = load_zip(zip_code)   # <-- single‑arg call
+        if cached is None:
+            cached = {
+                "zip":           zip_code,
+                "lat":           lat,
+                "lng":           lng,
+                "population":    fetch_population(zip_code),
+                "median_income": fetch_median_income(zip_code),
+                "rent_cost":     get_rent_score_from_coordinates(lat, lng),
+                "traffic_score": fetch_traffic_score(lat, lng, radius_m),
+                "parking_score": fetch_parking_score(lat, lng, radius_m),
+                "competitors":   {},
+            }
+
+        if place_type in cached["competitors"]:
+            comp_cnt = cached["competitors"][place_type]
+        else:
+            comp_cnt = fetch_competitor_count((lat, lng), radius_m, place_type)
+            cached["competitors"][place_type] = comp_cnt
+            save_zip(zip_code, cached)        # <-- two‑arg call
 
         return {
-            "zip": zip_code,
-            "lat": lat,
-            "lng": lng,
-            "population": fetch_population(zip_code),
-            "median_income": fetch_median_income(zip_code),
-            "rent_cost": rent_score,
-            "competitor_count": fetch_competitor_count((lat, lng), radius_m, place_type),
-            "traffic_score": fetch_traffic_score(lat, lng, radius_m),
-            "parking_score": fetch_parking_score(lat, lng, radius_m),
+            "zip":              zip_code,
+            "lat":              cached["lat"],
+            "lng":              cached["lng"],
+            "population":       cached["population"],
+            "median_income":    cached["median_income"],
+            "rent_cost":        cached["rent_cost"],
+            "competitor_count": comp_cnt,
+            "traffic_score":    cached["traffic_score"],
+            "parking_score":    cached["parking_score"],
         }
     except Exception as e:
-        print(f"[ERROR] Failed to evaluate ZIP {zip_record['ZCTA5CE20']}: {e}")
+        print(f"[ERROR] evaluate_zip {zip_code}: {e}")
         return None
 
 
@@ -229,9 +247,8 @@ def construct_loopnet_url(zip_code: str, lat: float, lng: float) -> Optional[str
         "key": GOOGLE_API_KEY
     }
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        results = response.json().get("results", [])
+        data = cached_get(url, params)
+        results = data.get("results", [])
 
         city = state = None
         for result in results:

@@ -4,12 +4,72 @@ import os
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
+import sqlite3, hashlib, json, threading
 
+
+# Caching config
+CACHE_TTL = 30 * 24 * 3600            # 30 days (Google Maps TOS)
+_CACHE_LOCK = threading.Lock()        # sqlite is threadsafe w/ a mutex
+DB = sqlite3.connect(
+    os.path.join(BASE_DIR := os.path.dirname(__file__), "places_cache.sqlite"),
+    check_same_thread=False,
+)
+DB.execute("""CREATE TABLE IF NOT EXISTS places_cache (
+                cache_key     TEXT PRIMARY KEY,
+                json_response TEXT NOT NULL,
+                created_at    INTEGER NOT NULL
+             )""")
+DB.execute("CREATE INDEX IF NOT EXISTS idx_age ON places_cache(created_at)")
+DB.commit()
+
+# API config
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 CENSUS_API_KEY = os.getenv("CENSUS_API_KEY")
 CENSUS_YEAR = 2022
+
+
+def _mk_cache_key(endpoint: str, params: dict) -> str:
+    """Stable SHA‑256 hash of endpoint + sorted params **excluding the API key**."""
+    p = {k: params[k] for k in sorted(params) if k != "key"}
+    blob = endpoint + "?" + "&".join(f"{k}={p[k]}" for k in p)
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def cached_get(endpoint: str, params: dict, ttl: int = CACHE_TTL) -> dict:
+    """Return JSON payload from cache or live request, transparently."""
+    key = _mk_cache_key(endpoint, params)
+    now = int(time.time())
+
+    # ---- lookup
+    with _CACHE_LOCK:
+        row = DB.execute(
+            "SELECT json_response, created_at FROM places_cache WHERE cache_key = ?",
+            (key,),
+        ).fetchone()
+
+    if row and now - row[1] < ttl:
+        print(f"[CACHE‑HIT] {endpoint.split('/')[-1]}  params={params}")
+        return json.loads(row[0])            # HIT ✅
+    
+    print(f"[CACHE‑MISS] {endpoint.split('/')[-1]}  params={params}")
+
+    # ---- miss → hit Google
+    resp = session.get(endpoint, params=params, timeout=5)
+    resp.raise_for_status()
+    data = resp.json()
+
+    # cache only successful responses (status=OK | ZERO_RESULTS)
+    if data.get("status") in {"OK", "ZERO_RESULTS"}:
+        with _CACHE_LOCK:
+            DB.execute(
+                "INSERT OR REPLACE INTO places_cache VALUES (?,?,?)",
+                (key, json.dumps(data), now),
+            )
+            DB.commit()
+
+    return data
 
 # Configure retry session
 def requests_session_with_retries():
@@ -31,12 +91,12 @@ def reverse_geocode_to_zip(lat: float, lng: float):
     }
     try:
         print(f"[DEBUG] Requesting ZIP for ({lat}, {lng})")
-        response = session.get(url, params=params)
+        #response = session.get(url, params=params)
 
         # print(f"[DEBUG] Status Code: {response.status_code}")
         # print(f"[DEBUG] Response Text: {response.text[:300]}...")  # Print partial text to avoid overflow
 
-        data = response.json()
+        data = cached_get(url, params)
 
         if response.status_code == 200 and "results" in data:
             for result in data["results"]:
@@ -102,7 +162,9 @@ def fetch_competitor_count(location: tuple, radius: int, place_type: str):
     }
     competitor_count = 0
     while True:
-        res = requests.get(endpoint_url, params=params).json()
+
+        # res = requests.get(endpoint_url, params=params).json()
+        res = cached_get(endpoint_url, params)
         if res.get("status") != "OK":
             print(f"Google Places API Error: {res.get('status')}")
             break
@@ -127,7 +189,8 @@ def fetch_traffic_score(lat: float, lng: float, radius_m: int = 300) -> int:
             "type": place_type,
             "key": GOOGLE_API_KEY
         }
-        response = requests.get(url, params=params).json()
+        # response = requests.get(url, params=params).json()
+        response = cached_get(url, params) 
         count += len(response.get("results", []))
         time.sleep(0.1)
     return count
@@ -140,5 +203,6 @@ def fetch_parking_score(lat: float, lng: float, radius_m: int = 300) -> int:
         "type": "parking",
         "key": GOOGLE_API_KEY
     }
-    response = requests.get(url, params=params).json()
+    # response = requests.get(url, params=params).json()
+    response = cached_get(url, params) 
     return len(response.get("results", []))

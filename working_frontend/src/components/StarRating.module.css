@@ -1,0 +1,13 @@
+.star {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    fill: #d1d5db;          /* Tailwind gray‑300 */
+    transition: fill 0.2s;
+  }
+  
+  .star.hover,
+  .star.active {
+    fill: #facc15;          /* Tailwind yellow‑400 */
+  }
+  
