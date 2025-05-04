@@ -11,6 +11,7 @@ import SearchControls  from '@/components/SearchControls';
 import ZipResultCard   from '@/components/ZipResultCard';
 import { PRESETS, Weights } from '@/constants/presets';
 import ReviewSection from '@/components/ReviewSection';
+import WelcomeOverlay from '@/components/WelcomeOverlay';
 
 
 const Loader = dynamic(() => import('@/components/Loader'), { ssr: false });
@@ -86,16 +87,20 @@ export default function Home() {
 
   /* ───────────────────────────── markup ─────────────────────────── */
   return (
+    
     <div className="min-h-screen flex flex-col">
+
       {/* ─── Decorative banner ─── */}
-      <img
-        src="/images/site-banner-short.png"
-        alt=""
-        className="w-full select-none pointer-events-none"
-      />
+      <div className="bg-gray-50">
+        <img
+          src="/images/site-banner-short.png"
+          alt=""
+          className="w-full select-none pointer-events-none"
+        />
+      </div>
 
       {/* ─── Header ─── */}
-      <header className="flex flex-col items-center gap-2 p-6 pb-4 mb-12 shadow bg-white">
+      <header className="flex flex-col items-center gap-2 p-6 pb-4 mb-12 shadow bg-gray-50">
         <Image
           src="/images/firestore-text.png"
           alt="Firestore"
@@ -188,7 +193,7 @@ export default function Home() {
               <>
                 {/* Payment placeholders */}
                 <section className="space-y-3">
-                  <h4 className="text-sm font-semibold text-gray-700">
+                  <h4 className="text-sm font-semibold text-gray-800">
                     Payment options
                   </h4>
 
@@ -382,7 +387,7 @@ export default function Home() {
 
       {/* ─── Review Section ─── */}
       <hr className="my-16 border-gray-200" />
-      <div className="px-4 sm:px-6 mt-16 bg-gray-50">
+      <div className="px-4 sm:px-6 mt-6 bg-gray-50">
         <ReviewSection />
       </div>
 
@@ -399,6 +404,8 @@ export default function Home() {
           <p className="mt-2 text-grey-700 font-small">This may take a few minutes</p>
         </div>
       )}
+      {/* 👋 overlay appears first‑visit only */}
+      <WelcomeOverlay />
     </div>
   );
 }

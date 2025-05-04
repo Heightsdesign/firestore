@@ -13,7 +13,7 @@ export const PRESETS: Record<
 > = {
   barbershop: {
     label: 'Barbershop / Salon',
-    radius: 5,
+    radius: 3,
     weights: { rent: 0.2, competition: 0.2, population: 0.3, income: 0.1, traffic: 0.0, parking: 0.2 },
   },
   cafe: {
@@ -33,12 +33,12 @@ export const PRESETS: Record<
   },
   gym: {
     label: 'Gym / Fitness studio',
-    radius: 7,
+    radius: 5,
     weights: { rent: 0.2, competition: 0.2, population: 0.25, income: 0.15, traffic: 0.05, parking: 0.15 },
   },
   warehouse: {
     label: 'Warehouse / Fulfilment',
-    radius: 10,
+    radius: 5,
     weights: { rent: 0.35, competition: 0, population: 0, income: 0, traffic: 0.1, parking: 0.55 },
   },
 };

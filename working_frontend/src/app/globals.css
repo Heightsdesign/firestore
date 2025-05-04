@@ -81,3 +81,8 @@ input[type="range"].slider-green::-ms-thumb {
   background: #16a34a;
   border: 3px solid #ffffff;
 }
+
+select option:hover {
+  background-color: #bbf7d0; /* Tailwind's green-200 */
+  color: #16a34a; /* Tailwind's green-700 */
+}

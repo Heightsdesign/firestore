@@ -1,0 +1,5 @@
+1. Upgrade downloadable pdf file.
+2. Add welcome page
+3. Implement payment method / blur some results or options for free tier.
+
+________ Details to fix__________

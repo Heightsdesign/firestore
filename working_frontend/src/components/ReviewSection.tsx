@@ -32,13 +32,13 @@ export default function ReviewSection() {
   }
 
   return (
-    <section className="max-w-4xl mx-auto mt-24 px-4 sm:px-6 py-12 bg-gray-50 rounded shadow">
-      <h2 className="text-xl font-semibold text-center mb-8 text-gray-800">
-        What others are saying
+    <section className="max-w-4xl mx-auto mt-12 px-4 sm:px-6 pt-16 pb-12 bg-gray-50">
+      <h2 className="text-2xl font-semibold mt-6 mb-8 text-gray-800">
+        Leave us a comment
       </h2>
 
       {/* ---------- FORM ---------- */}
-      <form onSubmit={handleSubmit} className="space-y-4 mb-10">
+      <form onSubmit={handleSubmit} className="space-y-4 mt-6 mb-10">
         <div>
           <label className="block text-sm font-medium mb-1">Your name</label>
           <input
@@ -84,14 +84,14 @@ export default function ReviewSection() {
 
         <button
           disabled={submitting}
-          className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+          className="px-4 py-2 bg-green-600 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
         >
           {submitting ? 'Submitting…' : 'Submit Review'}
         </button>
       </form>
 
       {/* ---------- LIST ---------- */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-12">
         {reviews.length === 0 && (
           <p className="text-sm text-gray-500 italic text-center">
             No reviews yet. Be the first!
