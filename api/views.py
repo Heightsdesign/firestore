@@ -1,8 +1,12 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from rest_framework import generics
 import json
 
 from .location_utils import rank_top_zones, fetch_lifestyle_fit
+from .models import Review
+from .serializers import ReviewSerializer
+
 
 @csrf_exempt
 def analyze_location(request):
@@ -39,3 +43,9 @@ def analyze_location(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'POST request required'}, status=405)
+
+
+
+class ReviewListCreateView(generics.ListCreateAPIView):
+    queryset = Review.objects.order_by('-created_at')[:10]
+    serializer_class = ReviewSerializer

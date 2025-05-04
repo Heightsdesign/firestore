@@ -10,6 +10,8 @@ import Map             from '@/components/Map';
 import SearchControls  from '@/components/SearchControls';
 import ZipResultCard   from '@/components/ZipResultCard';
 import { PRESETS, Weights } from '@/constants/presets';
+import ReviewSection from '@/components/ReviewSection';
+
 
 const Loader = dynamic(() => import('@/components/Loader'), { ssr: false });
 
@@ -377,6 +379,11 @@ export default function Home() {
           </div>
         )}
       </main>
+      
+      {/* ─── Review Section ─── */}
+      <div className="px-4 sm:px-6 mt-16">
+        <ReviewSection />
+      </div>
 
       {/* ─── Footer ─── */}
       <footer className="text-xs text-gray-400 text-center py-4">
