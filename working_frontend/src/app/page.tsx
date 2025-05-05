@@ -312,7 +312,8 @@ export default function Home() {
                   <button
                     className="flex-1 px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm"
                     onClick={async () => {
-                      const blob = await buildReportPdf(results, { radiusMiles, weights });
+                      const blob = await buildReportPdf(results, { radiusMiles, weights, lat: lat!,
+                        lng: lng!, city: results[0]?.city ?? '',});
                       const url  = URL.createObjectURL(blob);
                       const a    = document.createElement('a');
                       a.href = url;
@@ -361,7 +362,8 @@ export default function Home() {
                   className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-40"
                   disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddr)}
                   onClick={async () => {
-                    const blob = await buildReportPdf(results, { radiusMiles, weights });
+                    const blob = await buildReportPdf(results, { radiusMiles, weights, lat: lat!,
+                      lng: lng!, city: results[0]?.city ?? '',});
                     const buf  = await blob.arrayBuffer();
                     const binary = Array.from(new Uint8Array(buf))
                       .map((b) => String.fromCharCode(b))

@@ -68,6 +68,28 @@ def reverse_geocode_to_neighborhood(lat: float, lng: float) -> str | None:
     except Exception as e:
         print(f"[ERROR] reverse_geocode_to_neighborhood failed for ({lat}, {lng}): {e}")
         return None
+    
+
+def reverse_geocode_to_city(lat: float, lng: float) -> str | None:
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        "latlng": f"{lat},{lng}",
+        "key": GOOGLE_API_KEY
+    }
+
+    try:
+        data = cached_get(url, params)
+
+        for result in data.get("results", []):
+            for component in result.get("address_components", []):
+                if "locality" in component["types"]:  # This is the city
+                    return component["long_name"]
+        return None
+
+    except Exception as e:
+        print(f"[ERROR] reverse_geocode_to_city failed for ({lat}, {lng}): {e}")
+        return None
+
 
 #################################################
 # 2. HELPER: Evaluate single ZIP
@@ -99,6 +121,8 @@ def evaluate_zip(zip_record, place_type: str = "restaurant", radius_m: int = 100
             cached["competitors"][place_type] = comp_cnt
             save_zip(zip_code, cached)        # <-- two‑arg call
 
+        city = reverse_geocode_to_city(lat, lng)
+
         return {
             "zip":              zip_code,
             "lat":              cached["lat"],
@@ -109,6 +133,7 @@ def evaluate_zip(zip_record, place_type: str = "restaurant", radius_m: int = 100
             "competitor_count": comp_cnt,
             "traffic_score":    cached["traffic_score"],
             "parking_score":    cached["parking_score"],
+            "city": city,
         }
     except Exception as e:
         print(f"[ERROR] evaluate_zip {zip_code}: {e}")

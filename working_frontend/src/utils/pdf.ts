@@ -1,11 +1,14 @@
 import { PDFDocument, rgb, StandardFonts, PDFFont } from 'pdf-lib';
-import logoSrc from '@/public/images/firestore-text.png';
 const logoUrl = '/images/firestore-text.png';
 
 
 export async function buildReportPdf(
   results: any[],
-  inputs: { radiusMiles: number; weights: Record<string, number> }
+  inputs: { radiusMiles: number;
+    weights: Record<string, number>;
+    lat: number;
+    lng: number;
+    city?: string;}
 ): Promise<Blob> {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -71,7 +74,7 @@ export async function buildReportPdf(
   
 
   // ─── Title ───
-  page.drawText('Firestore - Location Analysis', {
+  page.drawText('Location Analysis', {
     x: pageMargin,
     y,
     size: 20,
@@ -81,8 +84,21 @@ export async function buildReportPdf(
   y -= 30;
 
   // ─── Inputs ───
-  page.drawText(`Radius: ${inputs.radiusMiles} miles`, { x: pageMargin, y, size: 12, font });
+  page.drawText(
+    `Radius: ${inputs.radiusMiles} miles · Center: (${inputs.lat.toFixed(4)}, ${inputs.lng.toFixed(4)})`,
+    { x: pageMargin, y, size: 12, font }
+  );
   y -= 16;
+  
+  if (inputs.city) {
+    page.drawText(`City: ${inputs.city}`, {
+      x: pageMargin,
+      y,
+      size: 12,
+      font,
+    });
+    y -= 16;
+  }
   page.drawText('Weights:', { x: pageMargin, y, size: 12, font: bold });
   y -= 14;
 
