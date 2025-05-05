@@ -12,6 +12,7 @@ import ZipResultCard   from '@/components/ZipResultCard';
 import { PRESETS, Weights } from '@/constants/presets';
 import ReviewSection from '@/components/ReviewSection';
 import WelcomeOverlay from '@/components/WelcomeOverlay';
+import KnowledgeCarousel from '@/components/KnowledgeCarousel';
 
 
 const Loader = dynamic(() => import('@/components/Loader'), { ssr: false });
@@ -104,8 +105,8 @@ export default function Home() {
         <Image
           src="/images/firestore-text.png"
           alt="Firestore"
-          width={320}
-          height={800}
+          width={280}
+          height={80}
           priority
         />
         <p className="text-sm text-gray-600 text-center max-w-md">
@@ -384,6 +385,8 @@ export default function Home() {
           </div>
         )}
       </main>
+      {/* ─── Knowledge Carousel ─── */}
+      <KnowledgeCarousel />
 
       {/* ─── Review Section ─── */}
       <hr className="my-16 border-gray-200" />

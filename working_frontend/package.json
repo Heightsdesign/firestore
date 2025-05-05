@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@mdx-js/react": "^3.1.0",
+    "@next/mdx": "^15.3.1",
     "@sendgrid/mail": "^8.1.5",
     "framer-motion": "^12.9.2",
     "lottie-react": "^2.4.1",

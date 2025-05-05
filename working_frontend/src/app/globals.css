@@ -86,3 +86,9 @@ select option:hover {
   background-color: #bbf7d0; /* Tailwind's green-200 */
   color: #16a34a; /* Tailwind's green-700 */
 }
+
+.parallax-bg {
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
