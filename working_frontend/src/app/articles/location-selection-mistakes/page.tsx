@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import Content from './content.mdx';
+import Link from 'next/link';
 
 export default function ArticlePage() {
   return (
@@ -14,7 +14,10 @@ export default function ArticlePage() {
             />
         </div>
         <main className="prose lg:prose-lg mx-auto px-6 py-16">
-            <Content />
+          <Content />
+          <Link href="/articles" className="inline-block mt-4 text-green-600 hover:underline">
+            ← Back to Articles
+          </Link>
         </main>
     </div>
   );
